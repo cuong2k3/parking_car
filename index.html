@@ -77,7 +77,8 @@
         const dataRef = database.ref('iotdata1');
 
         // Tập hợp để lưu các biển số xe đã được hiển thị
-const displayedPlates = new Set();
+// Tập hợp để lưu các biển số xe đã được hiển thị
+const displayedRecords = {};
 
 // Lắng nghe sự thay đổi dữ liệu từ Firebase
 dataRef.on('value', (snapshot) => {
@@ -89,35 +90,32 @@ dataRef.on('value', (snapshot) => {
     document.getElementById('in-time').textContent = data.in?.time || "Không có dữ liệu";
 
     // Cập nhật thông tin xe ra
-    document.getElementById('out-license-plate').textContent = data.out?.licensePlate || "Không có dữ liệu";
-    document.getElementById('out-date').textContent = data.out?.date || "Không có dữ liệu";
-    document.getElementById('out-time').textContent = data.out?.time || "Không có dữ liệu";
+    document.getElementById('out-license-plate').textContent = data.in?.licensePlate || "Không có dữ liệu";
+    document.getElementById('out-date').textContent = data.in?.date || "Không có dữ liệu";
+    document.getElementById('out-time').textContent = data.in?.time || "Không có dữ liệu";
 
     // Cập nhật danh sách xe
     if (data.history) {
         const carList = document.getElementById('car-list');
-        for (const key in data.history) {
+        carList.innerHTML = ""; // Xóa toàn bộ danh sách hiện tại
+
+        Object.keys(data.history).forEach((key, index) => {
             const record = data.history[key];
 
-            // Kiểm tra nếu biển số đã tồn tại trong danh sách
-            if (!displayedPlates.has(record.licensePlate1)) {
-                // Thêm biển số vào tập hợp
-                displayedPlates.add(record.licensePlate1);
-
-                // Tạo một dòng mới trong bảng
-                const row = `
-                    <tr>
-                        <td>${displayedPlates.size}</td>
-                        <td>${record.licensePlate1}</td>
-                        <td>${record.inTime || "Không có"}</td>
-                        <td>${record.outTime || "Không có"}</td>
-                    </tr>
-                `;
-                carList.insertAdjacentHTML('beforeend', row);
-            }
-        }
+            // Thêm dòng mới cho mỗi bản ghi
+            const row = `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${record.licensePlate1}</td>
+                    <td>${record.inTime || "Không có"}</td>
+                    <td>${record.outTime || "Không có"}</td>
+                </tr>
+            `;
+            carList.insertAdjacentHTML('beforeend', row);
+        });
     }
 });
+
 
     </script>
 </body>
