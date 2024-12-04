@@ -14,6 +14,18 @@
         <h1 class="text-center mb-4">Đồ án IOT - Bãi Đỗ Xe Thông Minh</h1>
         <p class="text-center text-muted">Hệ thống tự động theo dõi biển số xe và thời gian vào/ra</p>
 
+        <!-- Thông tin tổng quan -->
+        <div class="d-flex justify-content-around text-center mt-4 mb-5">
+            <div>
+                <h5>Số lượng xe hiện tại</h5>
+                <p id="current-car-count" class="fw-bold">0</p>
+            </div>
+            <div>
+                <h5>Vị trí còn trống</h5>
+                <p id="available-spots" class="fw-bold">0</p>
+            </div>
+        </div>
+
         <!-- Bảng 1: Hiển thị thông tin xe vào/ra -->
         <h2 class="text-center mt-5">Thông Tin Xe</h2>
         <div class="table-responsive">
@@ -37,6 +49,12 @@
             </table>
         </div>
 
+        <!-- Nút nhấn -->
+        <div class="d-flex justify-content-around mt-4">
+            <button class="btn btn-primary" id="open-gate-in">Mở Cửa Vào</button>
+            <button class="btn btn-danger" id="open-gate-out">Mở Cửa Ra</button>
+        </div>
+
         <!-- Bảng 2: Danh sách xe -->
         <h2 class="text-center mt-5">Danh Sách Xe</h2>
         <div class="table-responsive">
@@ -53,6 +71,11 @@
                     <!-- Các dòng dữ liệu sẽ được thêm tại đây -->
                 </tbody>
             </table>
+        </div>
+
+        <!-- Link giám sát -->
+        <div class="text-center mt-4">
+            <p>Giám sát dữ liệu: <a href="http://surl.li/lczsue" target="_blank">http://surl.li/lczsue</a></p>
         </div>
     </div>
 
@@ -76,47 +99,62 @@
         // Tham chiếu tới đường dẫn trong Realtime Database
         const dataRef = database.ref('iotdata1');
 
-        // Tập hợp để lưu các biển số xe đã được hiển thị
-// Tập hợp để lưu các biển số xe đã được hiển thị
-const displayedRecords = {};
+        // Lắng nghe sự thay đổi dữ liệu từ Firebase
+        dataRef.on('value', (snapshot) => {
+            const data = snapshot.val();
 
-// Lắng nghe sự thay đổi dữ liệu từ Firebase
-dataRef.on('value', (snapshot) => {
-    const data = snapshot.val();
+            // Cập nhật thông tin xe vào
+            document.getElementById('in-license-plate').textContent = data.in?.licensePlate || "Không có dữ liệu";
+            document.getElementById('in-date').textContent = data.in?.date || "Không có dữ liệu";
+            document.getElementById('in-time').textContent = data.in?.time || "Không có dữ liệu";
 
-    // Cập nhật thông tin xe vào
-    document.getElementById('in-license-plate').textContent = data.in?.licensePlate || "Không có dữ liệu";
-    document.getElementById('in-date').textContent = data.in?.date || "Không có dữ liệu";
-    document.getElementById('in-time').textContent = data.in?.time || "Không có dữ liệu";
+            // Cập nhật thông tin xe ra
+            document.getElementById('out-license-plate').textContent = data.in?.licensePlate || "Không có dữ liệu";
+            document.getElementById('out-date').textContent = data.in?.date || "Không có dữ liệu";
+            document.getElementById('out-time').textContent = data.in?.time || "Không có dữ liệu";
 
-    // Cập nhật thông tin xe ra
-    document.getElementById('out-license-plate').textContent = data.in?.licensePlate || "Không có dữ liệu";
-    document.getElementById('out-date').textContent = data.in?.date || "Không có dữ liệu";
-    document.getElementById('out-time').textContent = data.in?.time || "Không có dữ liệu";
+            // Cập nhật danh sách xe
+            if (data.history) {
+                const carList = document.getElementById('car-list');
+                carList.innerHTML = ""; // Xóa toàn bộ danh sách hiện tại
 
-    // Cập nhật danh sách xe
-    if (data.history) {
-        const carList = document.getElementById('car-list');
-        carList.innerHTML = ""; // Xóa toàn bộ danh sách hiện tại
+                let currentCarCount = 0; // Số xe hiện tại
 
-        Object.keys(data.history).forEach((key, index) => {
-            const record = data.history[key];
+                Object.keys(data.history).forEach((key, index) => {
+                    const record = data.history[key];
 
-            // Thêm dòng mới cho mỗi bản ghi
-            const row = `
-                <tr>
-                    <td>${index + 1}</td>
-                    <td>${record.licensePlate1}</td>
-                    <td>${record.inTime || "Không có"}</td>
-                    <td>${record.outTime || "Không có"}</td>
-                </tr>
-            `;
-            carList.insertAdjacentHTML('beforeend', row);
+                    // Tính số xe hiện tại
+                    if (!record.outTime) {
+                        currentCarCount++;
+                    }
+
+                    // Thêm dòng mới cho mỗi bản ghi
+                    const row = `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${record.licensePlate1}</td>
+                            <td>${record.inTime || "Không có"}</td>
+                            <td>${record.outTime || "Không có"}</td>
+                        </tr>
+                    `;
+                    carList.insertAdjacentHTML('beforeend', row);
+                });
+
+                // Cập nhật số lượng xe hiện tại và vị trí còn trống
+                const totalSlots = 100; // Tổng số vị trí đỗ xe
+                document.getElementById('current-car-count').textContent = currentCarCount;
+                document.getElementById('available-spots').textContent = totalSlots - currentCarCount;
+            }
         });
-    }
-});
 
+        // Xử lý các nút nhấn (chỉ là ví dụ, cần thêm chức năng thực tế)
+        document.getElementById('open-gate-in').addEventListener('click', () => {
+            alert("Mở cửa vào");
+        });
 
+        document.getElementById('open-gate-out').addEventListener('click', () => {
+            alert("Mở cửa ra");
+        });
     </script>
 </body>
 </html>
