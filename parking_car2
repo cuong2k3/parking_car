@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đồ án IOT</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-database.js";
+        document.getElementById('go-back').addEventListener('click', function() {
+    // Điều hướng quay lại trang Web 1 (URL của Web 1)
+    window.location.href = '1.html'; // Thay 'path-to-web1.html' bằng đường dẫn thực tế đến Web 1
+});
+
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAy3lTCpTJ-t0fs4CA36WazSDcKN6VP4xg",
+            authDomain: "iot-2024-b888a.firebaseapp.com",
+            databaseURL: "https://iot-2024-b888a-default-rtdb.firebaseio.com",
+            projectId: "iot-2024-b888a",
+            storageBucket: "iot-2024-b888a.appspot.com",
+            messagingSenderId: "954868204016",
+            appId: "1:954868204016:web:4da827c214c12fead09d35",
+            measurementId: "G-2H4YDJKYHF"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        const chartCtx = document.getElementById('chart').getContext('2d');
+
+        const combinedChart = new Chart(chartCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Nhiệt độ (°C)',
+                        data: [],
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Độ ẩm (%)',
+                        data: [],
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Thời gian'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Giá trị'
+                        }
+                    }
+                }
+            }
+        });
+
+        function fetchData() {
+            const dataRef = ref(database, 'web');
+            const dataRef1 = ref(database, 'iotdata1/in');
+
+            onValue(dataRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    //document.getElementById('date').textContent = data.date || "---";
+                    //document.getElementById('time').textContent = data.time || "---";
+                    document.getElementById('temperature').textContent = data.temperature || "---";
+                    document.getElementById('humidity').textContent = data.humidity || "---";
+                    document.getElementById('fireRatio').textContent = data.fireRisk || "Không có dữ liệu";
+
+                    const currentTime = new Date().toLocaleTimeString();
+
+                    if (data.temperature) {
+                        if (combinedChart.data.labels.length >= 10) {
+                            combinedChart.data.labels.shift();
+                            combinedChart.data.datasets[0].data.shift();
+                        }
+                        combinedChart.data.labels.push(currentTime);
+                        combinedChart.data.datasets[0].data.push(data.temperature);
+                    }
+
+                    if (data.humidity) {
+                        if (combinedChart.data.labels.length >= 10) {
+                            combinedChart.data.labels.shift();
+                            combinedChart.data.datasets[1].data.shift();
+                        }
+                        combinedChart.data.labels.push(currentTime);
+                        combinedChart.data.datasets[1].data.push(data.humidity);
+                    }
+
+                    combinedChart.update();
+                }
+            });
+            onValue(dataRef1, (snapshot) => {
+                const data1 = snapshot.val();
+                if (data1) {
+                    document.getElementById('date').textContent = data1.date || "---";
+                    document.getElementById('time').textContent = data1.time || "---";
+                }
+            });
+        }
+
+        window.onload = fetchData;
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: #0177A9;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            font-size: 24px;
+            border-bottom: 5px solid #0177A9;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .info {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .info div {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            flex: 1;
+            text-align: center;
+        }
+
+        .info div p {
+            font-size: 20px;
+            font-weight: bold;
+            color: #444;
+        }
+
+        .info .fire {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-left: 10%;
+            flex-basis: 100%;
+        }
+
+
+        canvas {
+            margin: 30px 0;
+            display: block;
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        footer {
+            background-color: #0177A9;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 16px;
+            margin-top: 30px;
+            border-top: 5px solid #0177A9;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Thông Tin Môi Trường</h1>
+    <h3>Nhiệt độ, độ ẩm và tỷ lệ cháy của môi trường hiện tại.</h3>
+</header>
+
+<div class="container">
+    <div class="info">
+        <div class="info-row">
+            <div>
+                <strong>Ngày:</strong>
+                <p id="date">---</p>
+            </div>
+            <div>
+                <strong>Thời gian:</strong>
+                <p id="time">---</p>
+            </div>
+        </div>
+
+        <div class="info-row">
+            <div>
+                <strong>Nhiệt độ (°C):</strong>
+                <p id="temperature">---</p>
+            </div>
+            <div>
+                <strong>Độ ẩm (%):</strong>
+                <p id="humidity">---</p>
+            </div>
+        </div>
+
+        <div class="fire">
+            <strong>Tỷ lệ cháy (%):</strong>
+            <p id="fireRatio">Không có dữ liệu</p>
+        </div>
+    </div>
+
+    <canvas id="chart"></canvas>
+</div>
+<div class="container mt-4 text-center">
+    <button class="btn btn-secondary" id="go-back">Quay lại Web 1</button>
+</div>
+</div>
+<footer>
+    <p>Web được phát triển bởi Võ Vinh Cơ và Đào Duy Cường</p>
+</footer>
+</body>
+</html>
