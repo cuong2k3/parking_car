@@ -11,7 +11,7 @@
         import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-database.js";
         document.getElementById('go-back').addEventListener('click', function() {
     // Điều hướng quay lại trang Web 1 (URL của Web 1)
-    window.location.href = 'index.html'; // Thay 'path-to-web1.html' bằng đường dẫn thực tế đến Web 1
+    window.location.href = '1.html'; // Thay 'path-to-web1.html' bằng đường dẫn thực tế đến Web 1
 });
 
 
@@ -185,10 +185,16 @@
 
         .info .fire {
             display: flex;
-            justify-content: center;
-            align-items: center;
-            padding-left: 10%;
-            flex-basis: 100%;
+            justify-content: center; /* Căn giữa theo chiều ngang */
+            align-items: center; /* Căn giữa theo chiều dọc */
+            gap: 10px; /* Khoảng cách giữa các phần tử */
+            flex-wrap: nowrap;
+        }
+
+        .fire strong,
+        .fire p {
+            margin: 0; /* Loại bỏ margin mặc định */
+            padding: 0; /* Loại bỏ padding mặc định */
         }
 
 
